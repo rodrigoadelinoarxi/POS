@@ -1,0 +1,2 @@
+# POS
+ligação pos, impressora
