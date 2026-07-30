@@ -68,7 +68,7 @@ def print_logo(p, encoded):
 def print_receipt(p, data):
     company = data.get("company") or {}
     print_logo(p, company.get("logo_base64"))
-    p.set(align="center", bold=True, width=2, height=2)
+    p.set(align="center", bold=True, width=3, height=3)
     p.text((company.get("name") or "").strip() + "\n")
     p.set(align="center", bold=False, width=1, height=1)
     if company.get("vat"): p.text(f"NIF: {company['vat']}\n")
@@ -81,7 +81,7 @@ def print_receipt(p, data):
     p.set(align="left")
     if data.get("cashier"): p.text(f"Atendido por: {data['cashier']}\n")
     if data.get("order_number"):
-        p.set(align="center", bold=True, width=4, height=4)
+        p.set(align="center", bold=True, width=6, height=6)
         p.text(str(data["order_number"]) + "\n")
         p.set(align="left", bold=False, width=1, height=1)
     p.text(f"Documento: {data.get('order_ref') or ''}\n")
@@ -123,25 +123,75 @@ def print_receipt(p, data):
 
 
 def print_beverages(p, data):
-    p.set(align="center", bold=True, width=2, height=2)
-    p.text("BEBIDAS\n")
-    if data.get("order_number"):
-        p.set(align="center", bold=True, width=4, height=4)
-        p.text(str(data["order_number"]) + "\n")
-    p.set(width=1, height=1, bold=False)
-    if data.get("table"): p.text(f"Mesa: {data['table']}\n")
-    if data.get("cashier"): p.text(f"Atendido por: {data['cashier']}\n")
+    numero_original = str(data.get("order_number") or "").strip()
+
+    # O Odoo envia 037, mas mostra 137.
+    if numero_original.isdigit():
+        numero_pedido = str(int(numero_original) + 100)
+    else:
+        numero_pedido = numero_original
+
+    print(
+        "NUMERO_BEBIDAS_CORRIGIDO:",
+        {
+            "recebido": numero_original,
+            "impresso": numero_pedido,
+        },
+        flush=True,
+    )
+
+    # Numero do pedido em grande, sem o titulo BEBIDAS.
+    if numero_pedido:
+        p.set(align="center", bold=True)
+        p._raw(b"\x1d\x21\x77")
+        p.text(numero_pedido + "\n")
+        p._raw(b"\x1d\x21\x00")
+
+    # Mesa logo abaixo do numero.
+    p.set(align="center", bold=True, width=3, height=3)
+
+    mesa = data.get("table")
+
+    # Mesa grande (forçada).
+    p.set(align="center", bold=True)
+    p._raw(b"\x1d\x21\x33")
+
+    if mesa:
+        p.text(f"MESA: {mesa}\n")
+    else:
+        p.text("MESA: ---\n")
+
+    p._raw(b"\x1d\x21\x00")
+    p.set(align="center", bold=False, width=1, height=1)
+
+    p.set(width=1, height=1, bold=False, align="center")
+
+    if data.get("cashier"):
+        p.text(f"Atendido por: {data['cashier']}\n")
+
     p.text("-" * WIDTH + "\n")
+
+    # Produtos por baixo.
     p.set(align="left", bold=True, width=2, height=2)
+
     for line in data.get("lines") or []:
         qty = line.get("qty", 0)
-        p.text(f"{qty:g} x {line.get('product') or ''}\n")
+
+        try:
+            qty_text = f"{float(qty):g}"
+        except (TypeError, ValueError):
+            qty_text = str(qty)
+
+        produto = str(line.get("product") or "")
+        p.text(f"{qty_text} x {produto}\n")
+
         if line.get("note"):
             p.set(width=1, height=1, bold=False)
             p.text(f"  Nota: {line['note']}\n")
             p.set(width=2, height=2, bold=True)
+
     p.set(width=1, height=1, bold=False, align="center")
-    p.text("\n" + (data.get("date") or "") + "\n\n")
+    p.text("\n" + str(data.get("date") or "") + "\n\n")
     p.cut()
 
 
