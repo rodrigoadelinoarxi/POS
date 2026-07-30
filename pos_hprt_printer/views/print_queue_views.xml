@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_pos_print_job_list" model="ir.ui.view">
+        <field name="name">pos.print.job.list</field>
+        <field name="model">pos.print.job</field>
+        <field name="arch" type="xml">
+            <list string="Fila de Impressão HPRT" decoration-danger="state == 'error'"
+                  decoration-success="state == 'printed'" decoration-muted="state == 'pending'">
+                <field name="name" string="Job ID"/>
+                <field name="job_type"/>
+                <field name="pos_reference"/>
+                <field name="pos_order_id"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state == 'error'"
+                       decoration-success="state == 'printed'"
+                       decoration-info="state in ('sent', 'accepted')"
+                       decoration-muted="state == 'pending'"/>
+                <field name="attempts"/>
+                <field name="max_attempts"/>
+                <field name="create_date" string="Criado em"/>
+                <field name="last_error"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_pos_print_job_form" model="ir.ui.view">
+        <field name="name">pos.print.job.form</field>
+        <field name="model">pos.print.job</field>
+        <field name="arch" type="xml">
+            <form string="Trabalho de Impressão">
+                <header>
+                    <button name="action_send" type="object" string="Reenviar Agora"
+                            class="btn-primary" invisible="state == 'printed'"/>
+                    <button name="action_reprint" type="object" string="Reimprimir (novo job)"
+                            class="btn-secondary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,sent,accepted,printed,error"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" string="Job ID"/>
+                            <field name="job_type"/>
+                            <field name="pos_order_id"/>
+                            <field name="pos_reference"/>
+                        </group>
+                        <group>
+                            <field name="attempts"/>
+                            <field name="max_attempts"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Conteúdo Enviado">
+                            <field name="payload" widget="text"/>
+                        </page>
+                        <page string="Última Resposta">
+                            <field name="last_response" widget="text"/>
+                        </page>
+                        <page string="Último Erro">
+                            <field name="last_error" widget="text"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_pos_print_job" model="ir.actions.act_window">
+        <field name="name">Fila / Histórico de Impressão HPRT</field>
+        <field name="res_model">pos.print.job</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_pos_print_job_root"
+              name="Impressão HPRT"
+              parent="point_of_sale.menu_point_config_product"
+              sequence="90"/>
+
+    <menuitem id="menu_pos_print_job"
+              name="Fila / Histórico"
+              parent="menu_pos_print_job_root"
+              action="action_pos_print_job"
+              sequence="10"/>
+
+</odoo>
