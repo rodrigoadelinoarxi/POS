@@ -5,9 +5,9 @@
             <button class="button print btn btn-lg btn-primary w-100 py-3 mt-1" t-on-click="printExternalReceipt">
                 <i class="fa fa-print ms-2"/> Imprimir Talão
             </button>
-            <button class="button print btn btn-lg btn-warning w-100 py-3 mt-1" t-on-click="printBeverages">
+            <!--<button class="button print btn btn-lg btn-warning w-100 py-3 mt-1" t-on-click="printBeverages">
                 <i class="fa fa-glass ms-2"/> Imprimir Bebidas
-            </button>
+            </button>-->
         </xpath>
     </t>
 </templates>
